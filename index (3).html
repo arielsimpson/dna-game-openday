@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find the Typo — Bone Marrow Research</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#F5EEF8;min-height:100vh;padding:20px}
+.wrap{max-width:620px;margin:0 auto}
+.header{background:#4A235A;color:#fff;border-radius:12px;padding:24px 28px;margin-bottom:20px}
+.header h1{font-size:20px;font-weight:600;margin-bottom:6px}
+.header p{font-size:13px;opacity:0.8;line-height:1.5}
+.uni{font-size:11px;background:rgba(255,255,255,0.18);border-radius:4px;padding:3px 10px;display:inline-block;margin-bottom:12px;letter-spacing:0.04em}
+.card{background:#fff;border-radius:12px;padding:24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+.round-info{font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em}
+.round-title{font-size:15px;font-weight:600;color:#4A235A;margin-bottom:14px}
+.score-row{display:flex;gap:10px;margin-bottom:18px}
+.score-box{flex:1;background:#F5EEF8;border-radius:8px;padding:10px;text-align:center}
+.score-num{font-size:20px;font-weight:600;color:#4A235A}
+.score-label{font-size:11px;color:#666;margin-top:2px}
+.seq-label{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.sequence{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.base{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;border:2px solid transparent;transition:transform 0.12s;font-family:monospace;-webkit-tap-highlight-color:transparent}
+.base:active{transform:scale(0.94)}
+.A{background:#EAF3DE;color:#3B6D11;border-color:#C0DD97}
+.T{background:#F5EEF8;color:#185FA5;border-color:#B5D4F4}
+.G{background:#FAEEDA;color:#854F0B;border-color:#FAC775}
+.C{background:#FBEAF0;color:#993556;border-color:#F4C0D1}
+.MUT{background:#FDEDEC;color:#A32D2D;border-color:#F09595;animation:pulse 1.3s infinite}
+.correct-base{background:#D5F5E3;color:#1E8449;border-color:#82E0AA;animation:none}
+.wrong-base{animation:shake 0.3s}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.55}}
+@keyframes shake{0%,100%{transform:translateX(0)}30%{transform:translateX(-5px)}70%{transform:translateX(5px)}}
+.hint{font-size:12px;color:#888;margin-bottom:16px}
+.status{border-radius:8px;padding:12px 16px;font-size:13px;line-height:1.6;margin-bottom:16px;background:#F5EEF8;color:#555;min-height:48px}
+.status.good{background:#D5F5E3;color:#1E8449}
+.status.bad{background:#FDEDEC;color:#A32D2D}
+.status.info{background:#F5EEF8;color:#4A235A}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+button{font-size:13px;padding:10px 20px;border-radius:8px;border:1.5px solid #ccc;background:#fff;color:#333;cursor:pointer;font-family:system-ui,sans-serif;font-weight:500}
+button.primary{background:#4A235A;color:#fff;border-color:#4A235A}
+button:active{opacity:0.85}
+.explain{background:#F5EEF8;border-left:3px solid #4A235A;border-radius:0 8px 8px 0;padding:14px 16px;font-size:13px;line-height:1.7;color:#4A235A;margin-top:16px;display:none}
+.explain.show{display:block}
+.divider{height:1px;background:#eee;margin:20px 0}
+.footer{text-align:center;padding:16px 0 8px}
+.footer p{font-size:12px;color:#888;line-height:1.7}
+.footer a{color:#4A235A;text-decoration:none;font-weight:500}
+.donate-card{background:#4A235A;border-radius:12px;padding:20px 24px;margin-bottom:16px;color:#fff}
+.donate-card h3{font-size:15px;font-weight:600;margin-bottom:8px}
+.donate-card p{font-size:13px;opacity:0.85;line-height:1.6;margin-bottom:14px}
+.donate-card a{display:inline-block;background:#fff;color:#4A235A;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;text-decoration:none}
+.progress{display:flex;gap:6px;margin-bottom:20px}
+.pip{height:5px;flex:1;border-radius:3px;background:#e0e0e0;transition:background 0.3s}
+.pip.done{background:#4A235A}
+.pip.active{background:#A569BD}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="uni">Bone Marrow Failure Research Group</div>
+    <h1>Find the Typo in the DNA</h1>
+    <p>Tap the base(s) that don't belong. That's basically what our gene editing tools do — find the error and fix it.</p>
+  </div>
+
+  <div class="card">
+    <div class="score-row">
+      <div class="score-box"><div class="score-num" id="found">0</div><div class="score-label">Found</div></div>
+      <div class="score-box"><div class="score-num" id="remaining">?</div><div class="score-label">Left</div></div>
+      <div class="score-box"><div class="score-num" id="attempts">0</div><div class="score-label">Attempts</div></div>
+    </div>
+    <div class="progress" id="progress"></div>
+    <div class="round-info" id="round-info">Round 1 of 3</div>
+    <div class="round-title" id="round-title"></div>
+    <div class="seq-label">Tap the mutant base(s)</div>
+    <div class="sequence" id="seq"></div>
+    <p class="hint" id="hint"></p>
+    <div class="status" id="status">Tap a base — which one looks out of place?</div>
+    <div class="btn-row">
+      <button class="primary" id="next-btn" style="display:none" onclick="nextRound()">Next round →</button>
+      <button id="reveal-btn" onclick="revealAnswer()">Show answer</button>
+      <button id="restart-btn" style="display:none" onclick="restartGame()">Play again</button>
+    </div>
+    <div class="explain" id="explain"></div>
+  </div>
+
+  <div class="donate-card">
+    <h3>Want to contribute to our research?</h3>
+    <p>Finding what turns on or off a gene in specific blood cells will enable the development of new therapies for conditions such as bone marrow failure, autoimmune diseases, and blood cancers. Participation is voluntary and involves giving a small, one-off blood sample — the same as you might have with your regular doctor. It takes around 10 minutes. This research has been approved by the University of Tasmania Human Research Ethics Committee (Project ID: 30868).</p>
+    <a href="https://www.marrowmap.com/" target="_blank" rel="noopener">Find out how to give a blood sample →</a>
+  </div>
+
+  <div class="footer">
+    <p>Bone Marrow Failure Research Group<br>
+    Come chat with us at our stand, or email <a href="mailto:marrow.map@utas.edu.au">marrow.map@utas.edu.au</a></p>
+  </div>
+</div>
+
+<script>
+const rounds=[
+  {title:"Simple substitution — one wrong base",sequence:["A","T","G","C","A","T","M","C","G","A","T","G","C","T","A"],mutations:[6],hint:"1 mutation hidden in this sequence",explain:"This is a point mutation — a single letter in the DNA code swapped to the wrong one. In bone marrow failure syndromes like Fanconi anaemia, mutations in genes like FANCA disrupt the cell's ability to repair its own DNA. Gene editing tools like CRISPR can target and correct exactly this kind of error."},
+  {title:"Two mutations — harder to spot",sequence:["G","C","T","A","M","G","C","T","A","G","M","C","A","T","G","C"],mutations:[4,10],hint:"2 mutations this time — find both",explain:"Some inherited syndromes involve mutations at multiple sites. Modern base editors can make precise single-letter corrections without cutting the DNA strand — reducing the risk of off-target changes elsewhere in the genome."},
+  {title:"Longer sequence — stay focused",sequence:["T","A","G","C","T","A","G","M","C","T","A","G","C","A","T","M","G","C","T","A"],mutations:[7,15],hint:"2 mutations in a longer sequence. Real sequencing searches through billions of bases.",explain:"When scientists sequence a patient's genome they search billions of base pairs for mutations. Once found, gene editing tools home in on that exact sequence, correct it, and leave the rest untouched. That precision is what makes gene therapy a realistic treatment goal for bone marrow failure."}
+];
+
+let current=0,totalFound=0,attempts=0,mutLeft=[],revealed=false;
+
+function buildPips(){
+  const p=document.getElementById('progress');
+  p.innerHTML='';
+  rounds.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='pip'+(i<current?' done':i===current?' active':'');
+    p.appendChild(d);
+  });
+}
+
+function build(){
+  const r=rounds[current];
+  mutLeft=[...r.mutations];
+  attempts=0;revealed=false;
+  document.getElementById('round-info').textContent='Round '+(current+1)+' of '+rounds.length;
+  document.getElementById('round-title').textContent=r.title;
+  document.getElementById('hint').textContent=r.hint;
+  document.getElementById('status').className='status';
+  document.getElementById('status').textContent='Tap a base — which one looks out of place?';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('restart-btn').style.display='none';
+  document.getElementById('reveal-btn').style.display='';
+  document.getElementById('explain').className='explain';
+  buildPips();
+  const seq=document.getElementById('seq');
+  seq.innerHTML='';
+  r.sequence.forEach((b,i)=>{
+    const el=document.createElement('div');
+    el.className='base '+(b==='M'?'MUT':b);
+    el.textContent=b==='M'?'?':b;
+    el.onclick=()=>handleClick(el,i);
+    seq.appendChild(el);
+  });
+  updateScore();
+}
+
+function updateScore(){
+  document.getElementById('found').textContent=totalFound;
+  document.getElementById('remaining').textContent=mutLeft.length;
+  document.getElementById('attempts').textContent=attempts;
+}
+
+function handleClick(el,idx){
+  if(revealed||el.classList.contains('correct-base'))return;
+  attempts++;
+  if(rounds[current].mutations.includes(idx)){
+    el.className='base correct-base';el.textContent='✓';
+    mutLeft=mutLeft.filter(m=>m!==idx);totalFound++;
+    if(mutLeft.length===0){
+      document.getElementById('status').className='status good';
+      document.getElementById('status').textContent='✓ All mutations found! '+(attempts<=rounds[current].mutations.length+1?'Sharp eye.':'Got there in '+attempts+' taps.');
+      showExplain();
+      document.getElementById('reveal-btn').style.display='none';
+      if(current<rounds.length-1)document.getElementById('next-btn').style.display='';
+      else document.getElementById('restart-btn').style.display='';
+    } else {
+      document.getElementById('status').className='status good';
+      document.getElementById('status').textContent='✓ One found — '+mutLeft.length+' more to go.';
+    }
+  } else {
+    el.classList.add('wrong-base');
+    setTimeout(()=>el.classList.remove('wrong-base'),350);
+    document.getElementById('status').className='status bad';
+    document.getElementById('status').textContent='Not quite — that base fits the normal pattern. Keep looking.';
+  }
+  updateScore();
+}
+
+function revealAnswer(){
+  revealed=true;
+  const bases=document.getElementById('seq').querySelectorAll('.base');
+  rounds[current].mutations.forEach(i=>{bases[i].className='base correct-base';bases[i].textContent='✓';});
+  document.getElementById('status').className='status info';
+  document.getElementById('status').textContent='Revealed — highlighted bases were the mutations. Read below to see why it matters.';
+  document.getElementById('reveal-btn').style.display='none';
+  showExplain();
+  if(current<rounds.length-1)document.getElementById('next-btn').style.display='';
+  else document.getElementById('restart-btn').style.display='';
+  updateScore();
+}
+
+function showExplain(){
+  const el=document.getElementById('explain');
+  el.textContent=rounds[current].explain;
+  el.className='explain show';
+}
+
+function nextRound(){current++;build();}
+function restartGame(){current=0;totalFound=0;build();}
+
+build();
+</script>
+</body>
+</html>
